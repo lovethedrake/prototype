@@ -1,0 +1,19 @@
+/bin/
+/rootfs/github-gateway
+/rootfs/check-run
+/vendor/
+node_modules/
+
+
+# IDEs
+.vscode/
+.idea/
+
+# Developer
+pvt/
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
