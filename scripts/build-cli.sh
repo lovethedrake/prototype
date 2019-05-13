@@ -13,13 +13,7 @@ fi
 
 goarch=$2
 
-if [ "$DRAKE_TAG" == "" ]; then
-  rel_version=devel
-else
-  rel_version=$DRAKE_TAG
-fi
-
-git_version=$(git describe --always --abbrev=7 --dirty)
+source scripts/versioning.sh
 
 base_package_name=github.com/lovethedrake/prototype
 ldflags="-w -X $base_package_name/pkg/version.version=$rel_version -X $base_package_name/pkg/version.commit=$git_version"
