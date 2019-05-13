@@ -4,17 +4,7 @@
 
 set -euo pipefail
 
-if [ "$DRAKE_TAG" == "" ]; then
-  rel_version=edge
-else
-  rel_version=$DRAKE_TAG
-fi
+source scripts/versioning.sh
+source scripts/base-docker.sh
 
-git_version=$(git describe --always --abbrev=7 --dirty)
-
-base_image_name=lovethedrake/prototype-brigade-worker
-
-set -x
-
-docker build . -t $base_image_name:$git_version
-docker tag $base_image_name:$git_version $base_image_name:$rel_version
+scripts/docker-build.sh

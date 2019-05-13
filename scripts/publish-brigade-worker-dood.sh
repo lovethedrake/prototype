@@ -4,18 +4,10 @@
 
 set -euo pipefail
 
-if [ "$DRAKE_TAG" == "" ]; then
-  rel_version=edge
-else
-  rel_version=$DRAKE_TAG
-fi
+source scripts/versioning.sh
+source scripts/base-docker.sh
 
-git_version=$(git describe --always --abbrev=7 --dirty)
-base_image_name=lovethedrake/prototype-brigade-worker
-
+set +x # Don't let the value of $DOCKER_PASSWORD bleed into the logs!
 docker login -u krancour -p $DOCKER_PASSWORD
 
-set -x
-
-docker push $base_image_name:$git_version
-docker push $base_image_name:$rel_version 
+scripts/docker-publish.sh
