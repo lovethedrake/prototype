@@ -2,6 +2,7 @@ package brigade
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,20 +42,16 @@ type Repository struct {
 
 // KubernetesConfig represents Kubernetes-related project configuration.
 type KubernetesConfig struct {
-	Namespace string
-	// TODO: Do we need all the VCS sidecar stuff? We don't have any intentions
-	// of running one per job/pod. Our intentions are to copy all source from the
-	// WORKER'S VCS sidecar to the shared build storage.
+	Namespace                         string
 	VCSSidecar                        string
 	VCSSidecarResourcesLimitsCPU      string
 	VCSSidecarResourcesLimitsMemory   string
 	VCSSidecarResourcesRequestsCPU    string
 	VCSSidecarResourcesRequestsMemory string
 	BuildStorageSize                  string
-	// TODO: Do we need this?
-	CacheStorageClass string
-	BuildStorageClass string
-	ServiceAccount    string
+	BuildStorageClass                 string
+	ServiceAccount                    string
+	ImagePullSecrets                  []string
 }
 
 // GetProjectFromEnvironmentAndSecret returns a Project object with values
@@ -87,8 +84,8 @@ func GetProjectFromEnvironmentAndSecret(
 			VCSSidecarResourcesLimitsMemory:   string(projectSecret.Data["vcsSidecarResources.limits.memory"]),
 			VCSSidecarResourcesRequestsCPU:    string(projectSecret.Data["vcsSidecarResources.requests.cpu"]),
 			VCSSidecarResourcesRequestsMemory: string(projectSecret.Data["vcsSidecarResources.requests.memory"]),
-			CacheStorageClass:                 string(projectSecret.Data["kubernetes.cacheStorageClass"]),
 			BuildStorageClass:                 string(projectSecret.Data["kubernetes.buildStorageClass"]),
+			ImagePullSecrets:                  strings.Split(string(projectSecret.Data["imagePullSecrets"]), ","),
 		},
 		Repo: Repository{
 			Name:              projectSecret.GetAnnotations()["projectName"],
