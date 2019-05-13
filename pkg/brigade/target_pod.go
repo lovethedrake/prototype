@@ -103,7 +103,6 @@ func (e *executor) runTargetPod(
 		},
 		Spec: v1.PodSpec{
 			RestartPolicy: v1.RestartPolicyNever,
-			Containers:    []v1.Container{},
 			Volumes: []v1.Volume{
 				{
 					Name: srcVolumeName,
@@ -124,8 +123,18 @@ func (e *executor) runTargetPod(
 			},
 		},
 	}
+
+	pod.Spec.ImagePullSecrets =
+		make([]v1.LocalObjectReference, len(project.Kubernetes.ImagePullSecrets))
+	for i, imagePullSecret := range project.Kubernetes.ImagePullSecrets {
+		pod.Spec.ImagePullSecrets[i] = v1.LocalObjectReference{
+			Name: imagePullSecret,
+		}
+	}
+
 	var mainContainerName string
 	containers := target.Containers()
+	pod.Spec.Containers = make([]v1.Container, len(containers))
 	for i, container := range containers {
 		var targetPodContainer v1.Container
 		targetPodContainer, err = getTargetPodContainer(
@@ -140,15 +149,14 @@ func (e *executor) runTargetPod(
 		// We'll treat all but the last container as sidecars. i.e. The last
 		// container in the target should be container 0 in the pod spec.
 		if i < len(containers)-1 {
-			pod.Spec.Containers = append(pod.Spec.Containers, targetPodContainer)
+			// +1 because we want to leave room in the first (0th) position for the
+			// primary container.
+			pod.Spec.Containers[i+1] = targetPodContainer
 			continue
 		}
 		// This is the primary container. Make it the first (0th) in the pod spec.
 		mainContainerName = container.Name()
-		pod.Spec.Containers = append(
-			[]v1.Container{targetPodContainer},
-			pod.Spec.Containers...,
-		)
+		pod.Spec.Containers[0] = targetPodContainer
 	}
 
 	if _, err = e.kubeClient.CoreV1().Pods(
