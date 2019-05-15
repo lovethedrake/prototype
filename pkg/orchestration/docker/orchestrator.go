@@ -16,6 +16,7 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 type devOrchestrator struct {
@@ -203,25 +204,35 @@ func (d *devOrchestrator) createContainer(
 	networkContainerID string,
 	container config.Container,
 ) (string, error) {
+
+	sha := "unknown"
+	var branch string
+
 	// TODO: We should probably move this somewhere else
 	workDir, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
 	repo, err := git.PlainOpen(workDir)
-	if err != nil {
+	if err != nil && err != git.ErrRepositoryNotExists {
 		return "", err
 	}
-	ref, err := repo.Head()
-	if err != nil {
-		return "", err
+	if repo != nil {
+		ref, rerr := repo.Head()
+		if rerr != nil && rerr != plumbing.ErrReferenceNotFound {
+			return "", rerr
+		}
+		if ref != nil {
+			sha = ref.Hash().String()
+			branch = ref.Name().Short()
+		}
 	}
 	// TODO: End "we should probably move this somewhere else"
 
 	env := make([]string, len(secrets))
 	copy(env, secrets)
-	env = append(env, fmt.Sprintf("DRAKE_SHA1=%s", ref.Hash()))
-	env = append(env, fmt.Sprintf("DRAKE_BRANCH=%s", ref.Name().Short()))
+	env = append(env, fmt.Sprintf("DRAKE_SHA1=%s", sha))
+	env = append(env, fmt.Sprintf("DRAKE_BRANCH=%s", branch))
 	env = append(env, "DRAKE_TAG=")
 
 	containerConfig := &dockerContainer.Config{
