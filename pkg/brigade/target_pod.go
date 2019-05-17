@@ -144,6 +144,12 @@ func (e *executor) runTargetPod(
 			environment,
 		)
 		if err != nil {
+			err = errors.Wrapf(
+				err,
+				"error building container spec for container \"%s\" of target \"%s\"",
+				container.Name(),
+				target.Name(),
+			)
 			return
 		}
 		// We'll treat all but the last container as sidecars. i.e. The last
@@ -224,6 +230,20 @@ func getTargetPodContainer(
 	environment []string,
 ) (v1.Container, error) {
 	privileged := container.Privileged()
+	if privileged && !project.AllowPrivilegedJobs {
+		return v1.Container{}, errors.Errorf(
+			"container \"%s\" requested to be privileged, but privileged jobs are "+
+				"not permitted by this project",
+			container.Name(),
+		)
+	}
+	if container.MountDockerSocket() && !project.AllowHostMounts {
+		return v1.Container{}, errors.Errorf(
+			"container \"%s\" requested to mount the docker socket, but host "+
+				"mounts are not permitted by this project",
+			container.Name(),
+		)
+	}
 	command, err := shellwords.Parse(container.Command())
 	if err != nil {
 		return v1.Container{}, err
