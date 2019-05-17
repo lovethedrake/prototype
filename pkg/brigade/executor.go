@@ -40,6 +40,14 @@ func (e *executor) ExecuteBuild(
 	event Event,
 ) error {
 	var branch, tag string
+	// We're only interested in events from the Github gateway.
+	if event.Provider != "github" {
+		log.Printf(
+			"received event from non-github provider \"%s\"-- nothing to execute",
+			event.Provider,
+		)
+		return nil
+	}
 	// There are really only two things we're interested in:
 	//
 	//   1. Check suite requested / re-requested. Github will send one of these
@@ -78,7 +86,7 @@ func (e *executor) ExecuteBuild(
 		tag = refSubmatches[1]
 	default:
 		log.Printf(
-			"received event type %s-- nothing to execute",
+			"received event type \"%s\"-- nothing to execute",
 			event.Type,
 		)
 		return nil
