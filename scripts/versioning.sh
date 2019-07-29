@@ -8,4 +8,4 @@ else
   export rel_version=$DRAKE_TAG
 fi
 
-export git_version=$(git describe --always --abbrev=7 --dirty)
+export git_version=$(git describe --always --abbrev=7 --dirty --match=NeVeRmAtCh)
