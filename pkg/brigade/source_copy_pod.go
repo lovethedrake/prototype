@@ -40,7 +40,7 @@ func (e *executor) runSourceClonePod(
 			Containers: []v1.Container{
 				{
 					Name:            "source-cloner",
-					Image:           "brigadecore/git-sidecar:latest",
+					Image:           "brigadecore/git-sidecar:v1.1.0",
 					ImagePullPolicy: v1.PullAlways,
 					Env: []v1.EnvVar{
 						{
