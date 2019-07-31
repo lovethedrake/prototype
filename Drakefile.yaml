@@ -26,10 +26,10 @@ baseDemoContainer: &baseDemoContainer
   name: demo
   image: debian:stretch
 
-targets:
+jobs:
 
 ################################################################################
-# Demo targets                                                                 #
+# Demo jobs                                                                    #
 ################################################################################
 
   env:
@@ -55,7 +55,7 @@ targets:
     - <<: *baseDemoContainer
       command: "false"
 
-  # This target demonstrates two containers networked together.
+  # This job demonstrates two containers networked together.
   # This doesn't work in Brigade / k8s yet because job / pod completion is based
   # on ALL containers having exited and the redis sidecar never will. There's
   # a KEP open to fix this.
@@ -70,7 +70,7 @@ targets:
       command: scripts/demo/redis.sh
 
 ################################################################################
-# Utility targets                                                              #
+# Utility jobs                                                                 #
 ################################################################################
 
   dep:
@@ -79,7 +79,7 @@ targets:
       command: dep ensure -v
 
 ################################################################################
-# Test targets                                                                 #
+# Test jobs                                                                    #
 ################################################################################
 
   verify-vendored-code:
@@ -98,7 +98,7 @@ targets:
       command: golangci-lint run ./cmd/... ./pkg/...
 
 ################################################################################
-# Build / publish targets                                                      #
+# Build / publish jobs                                                         #
 ################################################################################
 
   clean:
@@ -168,7 +168,7 @@ pipelines:
 
   foobar:
     stages:
-    - targets:
+    - jobs:
       - foo
       - bar
 
@@ -178,9 +178,9 @@ pipelines:
 
   publish-brigade-worker-dood:
     stages:
-    - targets:
+    - jobs:
       - build-brigade-worker-dood
-    - targets:
+    - jobs:
       - publish-brigade-worker-dood
 
 ################################################################################
@@ -193,13 +193,13 @@ pipelines:
         ignore:
         - master
     stages:
-    - targets:
+    - jobs:
       - env
-    - targets:
+    - jobs:
       - lint
       - verify-vendored-code
       - test-unit
-    - targets:
+    - jobs:
       - build-cli-linux-amd64
       - build-cli-darwin-amd64
       - build-cli-windows-amd64
@@ -211,18 +211,18 @@ pipelines:
         only:
         - master
     stages:
-    - targets:
+    - jobs:
       - env
-    - targets:
+    - jobs:
       - lint
       - verify-vendored-code
       - test-unit
-    - targets:
+    - jobs:
       - build-cli-linux-amd64
       - build-cli-darwin-amd64
       - build-cli-windows-amd64
       - build-brigade-worker-dind
-    - targets:
+    - jobs:
       - publish-brigade-worker-dind
 
 
@@ -236,13 +236,13 @@ pipelines:
         only:
         - /v[0-9]+(\.[0-9]+)*(\-.+)?/
     stages:
-    - targets:
+    - jobs:
       - env
-    - targets:
+    - jobs:
       - build-cli-linux-amd64
       - build-cli-darwin-amd64
       - build-cli-windows-amd64
       - build-brigade-worker-dind
-    - targets:
+    - jobs:
       - publish-cli
       - publish-brigade-worker-dind
