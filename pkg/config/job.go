@@ -9,8 +9,8 @@ type Job interface {
 }
 
 type job struct {
-	name   string
-	Cntnrs []*container `json:"containers"`
+	name       string
+	Containerz []*container `json:"containers"`
 }
 
 func (t *job) Name() string {
@@ -18,8 +18,8 @@ func (t *job) Name() string {
 }
 
 func (t *job) Containers() []Container {
-	containers := make([]Container, len(t.Cntnrs))
-	for i, container := range t.Cntnrs {
+	containers := make([]Container, len(t.Containerz))
+	for i, container := range t.Containerz {
 		containers[i] = container
 	}
 	return containers

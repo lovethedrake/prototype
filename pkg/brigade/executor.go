@@ -107,7 +107,7 @@ func (e *executor) ExecuteBuild(
 		}
 	}()
 
-	pipelines := config.GetAllPipelines()
+	pipelines := config.AllPipelines()
 	errCh := make(chan error)
 	environment := []string{
 		fmt.Sprintf("DRAKE_SHA1=%s", event.Revision.Commit),
