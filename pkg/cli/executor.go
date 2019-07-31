@@ -71,7 +71,7 @@ func (e *executor) ExecuteJobs(
 	if err != nil {
 		return err
 	}
-	jobs, err := config.GetJobs(jobNames)
+	jobs, err := config.Jobs(jobNames)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (e *executor) ExecutePipelines(
 	if err != nil {
 		return err
 	}
-	pipelines, err := config.GetPipelines(pipelineNames)
+	pipelines, err := config.Pipelines(pipelineNames)
 	if err != nil {
 		return err
 	}
