@@ -13,39 +13,39 @@ func (e *executor) runStage(
 	event Event,
 	pipelineName string,
 	stageIndex int,
-	targets []config.Target,
+	jobs []config.Job,
 	environment []string,
 ) error {
 	log.Printf("executing pipeline \"%s\" stage %d", pipelineName, stageIndex)
 	errCh := make(chan error)
-	var runningTargets int
-	for _, target := range targets {
+	var runningJobs int
+	for _, job := range jobs {
 		log.Printf(
-			"executing pipeline \"%s\" stage %d target \"%s\"",
+			"executing pipeline \"%s\" stage %d job \"%s\"",
 			pipelineName,
 			stageIndex,
-			target.Name(),
+			job.Name(),
 		)
-		runningTargets++
-		go e.runTargetPod(
+		runningJobs++
+		go e.runJobPod(
 			ctx,
 			project,
 			event,
 			pipelineName,
 			stageIndex,
-			target,
+			job,
 			environment,
 			errCh,
 		)
 	}
-	// Wait for all the targets to finish.
+	// Wait for all the jobs to finish.
 	errs := []error{}
 	for err := range errCh {
 		if err != nil {
 			errs = append(errs, err)
 		}
-		runningTargets--
-		if runningTargets == 0 {
+		runningJobs--
+		if runningJobs == 0 {
 			break
 		}
 	}

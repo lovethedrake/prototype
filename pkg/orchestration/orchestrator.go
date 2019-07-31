@@ -7,12 +7,12 @@ import (
 )
 
 type Orchestrator interface {
-	ExecuteTarget(
+	ExecuteJob(
 		ctx context.Context,
 		secrets []string,
 		executionName string,
 		sourcePath string,
-		target config.Target,
+		job config.Job,
 		errCh chan<- error,
 	)
 }

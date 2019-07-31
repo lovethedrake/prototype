@@ -49,10 +49,10 @@ func run(c *cli.Context) error {
 		)
 	} else {
 		if len(c.Args()) == 0 {
-			return errors.New("no targets were specified for execution")
+			return errors.New("no jobs were specified for execution")
 		}
 		// TODO: Should pass the stream that we want output to go to-- stdout
-		err = executor.ExecuteTargets(
+		err = executor.ExecuteJobs(
 			ctx,
 			configFile,
 			secretsFile,

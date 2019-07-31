@@ -95,14 +95,14 @@ func (e *executor) runPipeline(
 		return
 	default:
 	}
-	for stageIndex, stageTargets := range pipeline.Targets() {
+	for stageIndex, stageJobs := range pipeline.Jobs() {
 		if err = e.runStage(
 			ctx,
 			project,
 			event,
 			pipeline.Name(),
 			stageIndex,
-			stageTargets,
+			stageJobs,
 			environment,
 		); err != nil {
 			return

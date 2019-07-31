@@ -26,12 +26,12 @@ func main() {
 	app.Commands = []cli.Command{
 		{
 			Name:      "run",
-			Usage:     "execute drake target(s) or pipeline(s)",
+			Usage:     "execute drake jobs(s) or pipeline(s)",
 			UsageText: "drake run name... [options]",
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  flagsPipeline,
-					Usage: "execute a pipeline instead of a target",
+					Usage: "execute a pipeline instead of a job",
 				},
 				cli.BoolFlag{
 					Name:  flagsDebug,
@@ -39,7 +39,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  flagsConcurrently,
-					Usage: "enable concurrent target execution",
+					Usage: "enable concurrent job execution",
 				},
 				cli.StringFlag{
 					Name:  flagsSecretsFile,

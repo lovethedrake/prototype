@@ -29,16 +29,16 @@ func NewOrchestrator(dockerClient *docker.Client) orchestration.Orchestrator {
 	}
 }
 
-func (d *devOrchestrator) ExecuteTarget(
+func (d *devOrchestrator) ExecuteJob(
 	ctx context.Context,
 	secrets []string,
-	targetExecutionName string,
+	jobExecutionName string,
 	sourcePath string,
-	target config.Target,
+	job config.Job,
 	errCh chan<- error,
 ) {
 	var err error
-	containerIDs := make([]string, len(target.Containers()))
+	containerIDs := make([]string, len(job.Containers()))
 
 	// Ensure cleanup of all containers
 	defer func() {
@@ -46,32 +46,32 @@ func (d *devOrchestrator) ExecuteTarget(
 		errCh <- err
 	}()
 
-	if len(target.Containers()) == 0 {
+	if len(job.Containers()) == 0 {
 		return
 	}
 
-	fmt.Printf("----> executing target \"%s\" <----\n", target.Name())
+	fmt.Printf("----> executing job \"%s\" <----\n", job.Name())
 
 	var networkContainerID, lastContainerID string
 	var lastContainer config.Container
 	// Create and start all containers-- except the last one-- that one we will
 	// only create, then we will set ourselves up to capture its output and exit
 	// code before we start it.
-	for i, container := range target.Containers() {
+	for i, container := range job.Containers() {
 		var containerID string
 		if containerID, err = d.createContainer(
 			ctx,
 			secrets,
-			targetExecutionName,
+			jobExecutionName,
 			sourcePath,
 			networkContainerID,
 			container,
 		); err != nil {
 			err = errors.Wrapf(
 				err,
-				"error creating container \"%s\" for target \"%s\"",
+				"error creating container \"%s\" for job \"%s\"",
 				container.Name(),
-				target.Name(),
+				job.Name(),
 			)
 			return
 		}
@@ -91,9 +91,9 @@ func (d *devOrchestrator) ExecuteTarget(
 			); err != nil {
 				err = errors.Wrapf(
 					err,
-					"error starting container \"%s\" for target \"%s\"",
+					"error starting container \"%s\" for job \"%s\"",
 					container.Name(),
-					target.Name(),
+					job.Name(),
 				)
 				return
 			}
@@ -118,9 +118,9 @@ func (d *devOrchestrator) ExecuteTarget(
 	); err != nil {
 		err = errors.Wrapf(
 			err,
-			"error attaching to container \"%s\" for target \"%s\"",
+			"error attaching to container \"%s\" for job \"%s\"",
 			lastContainer.Name(),
-			target.Name(),
+			job.Name(),
 		)
 		return
 	}
@@ -129,7 +129,7 @@ func (d *devOrchestrator) ExecuteTarget(
 		defer containerAttachResp.Close()
 		var gerr error
 		stdOutWriter := prefixingWriter(
-			target.Name(),
+			job.Name(),
 			lastContainer.Name(),
 			os.Stdout,
 		)
@@ -137,7 +137,7 @@ func (d *devOrchestrator) ExecuteTarget(
 			_, gerr = io.Copy(stdOutWriter, containerAttachResp.Reader)
 		} else {
 			stdErrWriter := prefixingWriter(
-				target.Name(),
+				job.Name(),
 				lastContainer.Name(),
 				os.Stderr,
 			)
@@ -149,9 +149,9 @@ func (d *devOrchestrator) ExecuteTarget(
 		}
 		if gerr != nil {
 			fmt.Printf(
-				"error processing output from container \"%s\" for target \"%s\": %s\n",
+				"error processing output from container \"%s\" for job \"%s\": %s\n",
 				lastContainer.Name(),
-				target.Name(),
+				job.Name(),
 				err,
 			)
 		}
@@ -164,9 +164,9 @@ func (d *devOrchestrator) ExecuteTarget(
 	); err != nil {
 		err = errors.Wrapf(
 			err,
-			"error starting container \"%s\" for target \"%s\"",
+			"error starting container \"%s\" for job \"%s\"",
 			lastContainer.Name(),
-			target.Name(),
+			job.Name(),
 		)
 		return
 	}
@@ -174,8 +174,8 @@ func (d *devOrchestrator) ExecuteTarget(
 	case containerWaitResp := <-containerWaitRespCh:
 		if containerWaitResp.StatusCode != 0 {
 			// The command executed inside the container exited non-zero
-			err = &orchestration.ErrTargetExitedNonZero{
-				Target:   target.Name(),
+			err = &orchestration.ErrJobExitedNonZero{
+				Job:      job.Name(),
 				ExitCode: containerWaitResp.StatusCode,
 			}
 			return
@@ -183,23 +183,23 @@ func (d *devOrchestrator) ExecuteTarget(
 	case err = <-containerWaitErrCh:
 		err = errors.Wrapf(
 			err,
-			"error waiting for completion of container \"%s\" for target \"%s\"",
+			"error waiting for completion of container \"%s\" for job \"%s\"",
 			lastContainer.Name(),
-			target.Name(),
+			job.Name(),
 		)
 		return
 	case <-ctx.Done():
 	}
 }
 
-// createContainer creates a container for the given execution and target,
+// createContainer creates a container for the given execution and job,
 // taking source path, any established networking, and container-specific
 // configuration into account. It returns the newly created container's ID. It
 // does not start the container.
 func (d *devOrchestrator) createContainer(
 	ctx context.Context,
 	secrets []string,
-	targetExecutionName string,
+	jobExecutionName string,
 	sourcePath string,
 	networkContainerID string,
 	container config.Container,
@@ -270,7 +270,7 @@ func (d *devOrchestrator) createContainer(
 	}
 	fullContainerName := fmt.Sprintf(
 		"%s-%s",
-		targetExecutionName,
+		jobExecutionName,
 		container.Name(),
 	)
 	containerCreateResp, err := d.dockerClient.ContainerCreate(
@@ -310,7 +310,7 @@ func (d *devOrchestrator) forceRemoveContainers(
 }
 
 func prefixingWriter(
-	targetName string,
+	jobName string,
 	containerName string,
 	output io.Writer,
 ) io.Writer {
@@ -319,7 +319,7 @@ func prefixingWriter(
 	scanner.Split(bufio.ScanLines)
 	go func() {
 		for scanner.Scan() {
-			fmt.Fprintf(output, "[%s-%s] ", targetName, containerName)
+			fmt.Fprintf(output, "[%s-%s] ", jobName, containerName)
 			output.Write(scanner.Bytes()) // nolint: errcheck
 			fmt.Fprint(output, "\n")
 		}
