@@ -16,12 +16,12 @@ import (
 
 // Executor is the public interface for the CLI executor
 type Executor interface {
-	ExecuteTargets(
+	ExecuteJobs(
 		ctx context.Context,
 		configFile string,
 		secretsFile string,
 		sourcePath string,
-		targetNames []string,
+		jobNames []string,
 		debugOnly bool,
 		concurrencyEnabled bool,
 	) error
@@ -54,12 +54,12 @@ func NewExecutor(
 	}
 }
 
-func (e *executor) ExecuteTargets(
+func (e *executor) ExecuteJobs(
 	ctx context.Context,
 	configFile string,
 	secretsFile string,
 	sourcePath string,
-	targetNames []string,
+	jobNames []string,
 	debugOnly bool,
 	concurrencyEnabled bool,
 ) error {
@@ -71,18 +71,18 @@ func (e *executor) ExecuteTargets(
 	if err != nil {
 		return err
 	}
-	targets, err := config.GetTargets(targetNames)
+	jobs, err := config.GetJobs(jobNames)
 	if err != nil {
 		return err
 	}
 	if debugOnly {
-		fmt.Printf("would execute targets: %s\n", targetNames)
+		fmt.Printf("would execute jobs: %s\n", jobNames)
 		return nil
 	}
 
 	imageNames := map[string]struct{}{}
-	for _, target := range targets {
-		for _, container := range target.Containers() {
+	for _, job := range jobs {
+		for _, container := range job.Containers() {
 			imageNames[container.Image()] = struct{}{}
 		}
 	}
@@ -112,16 +112,16 @@ func (e *executor) ExecuteTargets(
 
 	executionName := e.namer.NameSep("-")
 	errCh := make(chan error)
-	var runningTargets int
-	for _, target := range targets {
-		targetExecutionName := fmt.Sprintf("%s-%s", executionName, target.Name())
-		runningTargets++
-		go e.orchestrator.ExecuteTarget(
+	var runningJobs int
+	for _, job := range jobs {
+		jobExecutionName := fmt.Sprintf("%s-%s", executionName, job.Name())
+		runningJobs++
+		go e.orchestrator.ExecuteJob(
 			ctx,
 			secrets,
-			targetExecutionName,
+			jobExecutionName,
 			sourcePath,
-			target,
+			job,
 			errCh,
 		)
 		if !concurrencyEnabled {
@@ -130,7 +130,7 @@ func (e *executor) ExecuteTargets(
 			if err := <-errCh; err != nil {
 				return err
 			}
-			runningTargets--
+			runningJobs--
 		}
 	}
 	// If concurrency isn't enabled and we haven't already encountered an error,
@@ -138,14 +138,14 @@ func (e *executor) ExecuteTargets(
 	if !concurrencyEnabled {
 		return nil
 	}
-	// Wait for all the targets to finish.
+	// Wait for all the jobs to finish.
 	errs := []error{}
 	for err := range errCh {
 		if err != nil {
 			errs = append(errs, err)
 		}
-		runningTargets--
-		if runningTargets == 0 {
+		runningJobs--
+		if runningJobs == 0 {
 			break
 		}
 	}
@@ -182,23 +182,23 @@ func (e *executor) ExecutePipelines(
 	if debugOnly {
 		fmt.Println("would execute:")
 		for _, pipeline := range pipelines {
-			targets := make([][]string, len(pipeline.Targets()))
-			for i, stageTargets := range pipeline.Targets() {
-				targets[i] = make([]string, len(stageTargets))
-				for j, target := range stageTargets {
-					targets[i][j] = target.Name()
+			jobs := make([][]string, len(pipeline.Jobs()))
+			for i, stageJobs := range pipeline.Jobs() {
+				jobs[i] = make([]string, len(stageJobs))
+				for j, job := range stageJobs {
+					jobs[i][j] = job.Name()
 				}
 			}
-			fmt.Printf("  %s targets: %s\n", pipeline.Name(), targets)
+			fmt.Printf("  %s jobs: %s\n", pipeline.Name(), jobs)
 		}
 		return nil
 	}
 
 	imageNames := map[string]struct{}{}
 	for _, pipeline := range pipelines {
-		for _, stageTargets := range pipeline.Targets() {
-			for _, target := range stageTargets {
-				for _, container := range target.Containers() {
+		for _, stageJobs := range pipeline.Jobs() {
+			for _, job := range stageJobs {
+				for _, container := range job.Containers() {
 					imageNames[container.Image()] = struct{}{}
 				}
 			}
@@ -233,22 +233,22 @@ func (e *executor) ExecutePipelines(
 		fmt.Printf("====> executing pipeline \"%s\" <====\n", pipeline.Name())
 		pipelineExecutionName :=
 			fmt.Sprintf("%s-%s", executionName, pipeline.Name())
-		for i, stageTargets := range pipeline.Targets() {
+		for i, stageJobs := range pipeline.Jobs() {
 			fmt.Printf("====> executing stage %d <====\n", i)
 			stageExecutionName :=
 				fmt.Sprintf("%s-stage%d", pipelineExecutionName, i)
 			errCh := make(chan error)
-			var runningTargets int
-			for _, target := range stageTargets {
-				targetExecutionName :=
-					fmt.Sprintf("%s-%s", stageExecutionName, target.Name())
-				runningTargets++
-				go e.orchestrator.ExecuteTarget(
+			var runningJobs int
+			for _, job := range stageJobs {
+				jobExecutionName :=
+					fmt.Sprintf("%s-%s", stageExecutionName, job.Name())
+				runningJobs++
+				go e.orchestrator.ExecuteJob(
 					ctx,
 					secrets,
-					targetExecutionName,
+					jobExecutionName,
 					sourcePath,
-					target,
+					job,
 					errCh,
 				)
 				// If concurrency isn't enabled, wait for a potential error. If it's
@@ -257,18 +257,18 @@ func (e *executor) ExecutePipelines(
 					if err := <-errCh; err != nil {
 						return err
 					}
-					runningTargets--
+					runningJobs--
 				}
 			}
-			// If concurrency is enabled, wait for all the targets to finish.
+			// If concurrency is enabled, wait for all the jobs to finish.
 			if concurrencyEnabled {
 				errs := []error{}
 				for err := range errCh {
 					if err != nil {
 						errs = append(errs, err)
 					}
-					runningTargets--
-					if runningTargets == 0 {
+					runningJobs--
+					if runningJobs == 0 {
 						break
 					}
 				}

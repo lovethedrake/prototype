@@ -16,17 +16,17 @@ __Drake Pipeline Specification__.
 
 Drake __pipelines__ are _instantiations_ of the Drake Pipeline Specification and
 are composed of one or more __stages__ which are executed _in sequence_. Stages,
-in turn, are composed of __targets__, which _may_ be executed concurrently.
-During pipeline execution, all targets in a given stage must complete before
+in turn, are composed of __jobs__, which _may_ be executed concurrently.
+During pipeline execution, all jobs in a given stage must complete before
 that stage can be considered complete and the subsequent stage can begin.
 
-Targets are the fundamental building blocks of a Drake pipeline. A simple target
+Jobs are the fundamental building blocks of a Drake pipeline. A simple job
 pairs OCI container configuration with a command to execute inside that
 container. Commands may be of arbitrary complexity-- often, they may invoke a
-shell script. Complex targets composed of multiple containers that are networked
+shell script. Complex jobs composed of multiple containers that are networked
 together are also possible.
 
-For examples of Drake targets and pipelines, refer to this repository's own
+For examples of Drake jobs and pipelines, refer to this repository's own
 `Drakefile.yaml`.
 
 ### `drake`
@@ -38,10 +38,10 @@ daemon on a developer's system-- something very few established CI/CD platforms
 enable a developer to do.
 
 Perhaps more importantly, the `drake` tool also permits local execution of
-individual targets. This makes it practical for developers to encapsulate tasks
-that comprise their development workflow within targets and enables frictionless
-_reuse_ of those same targets in defining CI/CD pipelines. For instance,
-hypothetical targets such as `test` or `lint` could be useful to a developer
+individual jobs. This makes it practical for developers to encapsulate tasks
+that comprise their development workflow within jobs and enables frictionless
+_reuse_ of those same jobs in defining CI/CD pipelines. For instance,
+hypothetical jobs such as `test` or `lint` could be useful to a developer
 locally, but are also sensible tasks to incorporate into a CI/CD pipeline.
 
 #### `drake` Installation
@@ -50,7 +50,7 @@ First, be certain that `docker` is installed and functioning normally.
 
 It's critically important to understand that `drake` will only work with a
 _local_ Docker server (`dockerd`). A remote Docker server will not work because
-`drake` mounts your project's source code into target containers and that is not
+`drake` mounts your project's source code into job containers and that is not
 possible (or at least not practical) with a remote Docker server.
 
 A Docker server running in a local VM via Docker for Mac or Docker for Windows

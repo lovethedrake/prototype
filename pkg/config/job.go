@@ -1,23 +1,23 @@
 package config
 
-// Target is a public interface for target configuration.
-type Target interface {
-	// Name returns the target's name
+// Job is a public interface for job configuration.
+type Job interface {
+	// Name returns the job's name
 	Name() string
-	// SidecarContainers returns this target's containers
+	// Containers returns this job's containers
 	Containers() []Container
 }
 
-type target struct {
+type job struct {
 	name   string
 	Cntnrs []*container `json:"containers"`
 }
 
-func (t *target) Name() string {
+func (t *job) Name() string {
 	return t.name
 }
 
-func (t *target) Containers() []Container {
+func (t *job) Containers() []Container {
 	containers := make([]Container, len(t.Cntnrs))
 	for i, container := range t.Cntnrs {
 		containers[i] = container

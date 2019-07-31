@@ -9,9 +9,9 @@ import (
 
 // Config is a public interface for the root of the Drake configuration tree.
 type Config interface {
-	// GetTargets returns an ordered list of Target given the provided
-	// targetNames.
-	GetTargets(targetNames []string) ([]Target, error)
+	// GetJobs returns an ordered list of Jobs given the provided
+	// jobNames.
+	GetJobs(jobNames []string) ([]Job, error)
 	// GetAllPipelines returns a list of all Pipelines
 	GetAllPipelines() []Pipeline
 	// GetPipelines returns an ordered list of Pipelines given the provided
@@ -21,7 +21,7 @@ type Config interface {
 
 // config represents the root of the Drake configuration tree.
 type config struct {
-	Targets   map[string]*target   `json:"targets"`
+	Jobs      map[string]*job      `json:"jobs"`
 	Pipelines map[string]*pipeline `json:"pipelines"`
 }
 
@@ -37,20 +37,20 @@ func NewConfigFromFile(configFilePath string) (Config, error) {
 		return nil,
 			errors.Wrapf(err, "error unmarshalling config file %s", configFilePath)
 	}
-	// Step through all targets to add their name attribute, which is inferred
-	// from the keys in the config.Targets map.
-	for targetName, target := range config.Targets {
-		target.name = targetName
+	// Step through all jobs to add their name attribute, which is inferred
+	// from the keys in the config.Jobs map.
+	for jobName, job := range config.Jobs {
+		job.name = jobName
 	}
 	// Step through all pipelines to add their name attribute, which is inferred
-	// from the keys in the config.Pipelines map. Also resolve targets referenced
+	// from the keys in the config.Pipelines map. Also resolve jobs referenced
 	// by each pipeline.
 	for pipelineName, pipeline := range config.Pipelines {
 		pipeline.name = pipelineName
-		if err := pipeline.resolveTargets(config.Targets); err != nil {
+		if err := pipeline.resolveJobs(config.Jobs); err != nil {
 			return nil, errors.Wrapf(
 				err,
-				"error resolving targets for pipeline \"%s\"",
+				"error resolving jobs for pipeline \"%s\"",
 				pipeline.name,
 			)
 		}
@@ -58,19 +58,19 @@ func NewConfigFromFile(configFilePath string) (Config, error) {
 	return config, nil
 }
 
-func (c *config) GetTargets(
-	targetNames []string,
-) ([]Target, error) {
-	targets := []Target{}
-	for _, targetName := range targetNames {
-		target, ok := c.Targets[targetName]
+func (c *config) GetJobs(
+	jobNames []string,
+) ([]Job, error) {
+	jobs := []Job{}
+	for _, jobName := range jobNames {
+		job, ok := c.Jobs[jobName]
 		if !ok {
 			return nil,
-				errors.Errorf("target \"%s\" not found", targetName)
+				errors.Errorf("job \"%s\" not found", jobName)
 		}
-		targets = append(targets, target)
+		jobs = append(jobs, job)
 	}
-	return targets, nil
+	return jobs, nil
 }
 
 func (c *config) GetAllPipelines() []Pipeline {

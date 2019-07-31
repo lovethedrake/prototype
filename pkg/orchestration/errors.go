@@ -4,15 +4,15 @@ import (
 	"fmt"
 )
 
-type ErrTargetExitedNonZero struct {
-	Target   string
+type ErrJobExitedNonZero struct {
+	Job      string
 	ExitCode int64
 }
 
-func (e *ErrTargetExitedNonZero) Error() string {
+func (e *ErrJobExitedNonZero) Error() string {
 	return fmt.Sprintf(
-		`target "%s" failed with non-zero exit code %d`,
-		e.Target,
+		`job "%s" failed with non-zero exit code %d`,
+		e.Job,
 		e.ExitCode,
 	)
 }

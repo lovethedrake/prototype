@@ -6,36 +6,36 @@ import "github.com/pkg/errors"
 type Pipeline interface {
 	Name() string
 	Matches(branch, tag string) (bool, error)
-	Targets() [][]Target
+	Jobs() [][]Job
 }
 
 type pipeline struct {
 	name     string
 	Selector *pipelineSelector `json:"criteria"`
 	Stages   []*pipelineStage  `json:"stages"`
-	targets  [][]*target
+	jobs     [][]*job
 }
 
 type pipelineStage struct {
-	Targets []string `json:"targets"`
+	Jobs []string `json:"jobs"`
 }
 
-func (p *pipeline) resolveTargets(targets map[string]*target) error {
-	p.targets = make([][]*target, len(p.Stages))
+func (p *pipeline) resolveJobs(jobs map[string]*job) error {
+	p.jobs = make([][]*job, len(p.Stages))
 	for i, stage := range p.Stages {
-		p.targets[i] = make([]*target, len(stage.Targets))
-		for j, targetName := range stage.Targets {
-			target, ok := targets[targetName]
+		p.jobs[i] = make([]*job, len(stage.Jobs))
+		for j, jobName := range stage.Jobs {
+			job, ok := jobs[jobName]
 			if !ok {
 				return errors.Errorf(
 					"pipeline \"%s\" stage %d (zero-indexed) depends on undefined "+
-						"target \"%s\"",
+						"job \"%s\"",
 					p.name,
 					i,
-					targetName,
+					jobName,
 				)
 			}
-			p.targets[i][j] = target
+			p.jobs[i][j] = job
 		}
 	}
 	return nil
@@ -53,13 +53,13 @@ func (p *pipeline) Matches(branch, tag string) (bool, error) {
 	return p.Selector.Matches(branch, tag)
 }
 
-func (p *pipeline) Targets() [][]Target {
-	targets := make([][]Target, len(p.targets))
-	for i, targs := range p.targets {
-		targets[i] = make([]Target, len(targs))
-		for j, targ := range targs {
-			targets[i][j] = targ
+func (p *pipeline) Jobs() [][]Job {
+	jobsIfaces := make([][]Job, len(p.jobs))
+	for i, jobs := range p.jobs {
+		jobsIfaces[i] = make([]Job, len(jobs))
+		for j, job := range jobs {
+			jobsIfaces[i][j] = job
 		}
 	}
-	return targets
+	return jobsIfaces
 }

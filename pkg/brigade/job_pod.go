@@ -25,13 +25,13 @@ const (
 	dockerSocketVolumeName = "docker-socket"
 )
 
-func (e *executor) runTargetPod(
+func (e *executor) runJobPod(
 	ctx context.Context,
 	project Project,
 	event Event,
 	pipelineName string,
 	stage int,
-	target config.Target,
+	job config.Job,
 	environment []string,
 	errCh chan<- error,
 ) {
@@ -47,15 +47,15 @@ func (e *executor) runTargetPod(
 		webhookPayload.Type == "check_suite" {
 		if err = notifyCheckStart(
 			webhookPayload,
-			target.Name(),
-			target.Name(),
+			job.Name(),
+			job.Name(),
 		); err != nil {
 			errCh <- err
 			return
 		}
 	}
 
-	jobName := fmt.Sprintf("%s-stage%d-%s", pipelineName, stage, target.Name())
+	jobName := fmt.Sprintf("%s-stage%d-%s", pipelineName, stage, job.Name())
 	podName := fmt.Sprintf("%s-%s", jobName, event.BuildID)
 
 	defer func() {
@@ -75,8 +75,8 @@ func (e *executor) runTargetPod(
 			}
 			if nerr := notifyCheckCompleted(
 				webhookPayload,
-				target.Name(),
-				target.Name(),
+				job.Name(),
+				job.Name(),
 				conclusion,
 			); nerr != nil {
 				log.Printf("error sending notification to github: %s", nerr)
@@ -98,7 +98,7 @@ func (e *executor) runTargetPod(
 				"build":                event.BuildID,
 				"thedrake.io/pipeline": pipelineName,
 				"thedrake.io/stage":    strconv.Itoa(stage),
-				"thedrake.io/target":   target.Name(),
+				"thedrake.io/job":      job.Name(),
 			},
 		},
 		Spec: v1.PodSpec{
@@ -133,11 +133,11 @@ func (e *executor) runTargetPod(
 	}
 
 	var mainContainerName string
-	containers := target.Containers()
+	containers := job.Containers()
 	pod.Spec.Containers = make([]v1.Container, len(containers))
 	for i, container := range containers {
-		var targetPodContainer v1.Container
-		targetPodContainer, err = getTargetPodContainer(
+		var jobPodContainer v1.Container
+		jobPodContainer, err = getJobPodContainer(
 			project,
 			event,
 			container,
@@ -146,23 +146,23 @@ func (e *executor) runTargetPod(
 		if err != nil {
 			err = errors.Wrapf(
 				err,
-				"error building container spec for container \"%s\" of target \"%s\"",
+				"error building container spec for container \"%s\" of job \"%s\"",
 				container.Name(),
-				target.Name(),
+				job.Name(),
 			)
 			return
 		}
 		// We'll treat all but the last container as sidecars. i.e. The last
-		// container in the target should be container 0 in the pod spec.
+		// container in the job should be container 0 in the pod spec.
 		if i < len(containers)-1 {
 			// +1 because we want to leave room in the first (0th) position for the
 			// primary container.
-			pod.Spec.Containers[i+1] = targetPodContainer
+			pod.Spec.Containers[i+1] = jobPodContainer
 			continue
 		}
 		// This is the primary container. Make it the first (0th) in the pod spec.
 		mainContainerName = container.Name()
-		pod.Spec.Containers[0] = targetPodContainer
+		pod.Spec.Containers[0] = jobPodContainer
 	}
 
 	if _, err = e.kubeClient.CoreV1().Pods(
@@ -223,7 +223,7 @@ func (e *executor) runTargetPod(
 	}
 }
 
-func getTargetPodContainer(
+func getJobPodContainer(
 	project Project,
 	event Event,
 	container config.Container,
