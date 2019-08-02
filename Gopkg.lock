@@ -58,14 +58,6 @@
   revision = "47d5b7fdabf7ffd62e83499bf632f090c6684120"
 
 [[projects]]
-  digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
-  name = "github.com/davecgh/go-spew"
-  packages = ["spew"]
-  pruneopts = ""
-  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
-  version = "v1.1.1"
-
-[[projects]]
   digest = "1:6098222470fe0172157ce9bbef5d2200df4edde17ee649c5d6e48330e4afa4c6"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -304,6 +296,14 @@
   version = "v1.0.2"
 
 [[projects]]
+  digest = "1:88a2d8e2ea9a605a51eed8be20cc27dc6c1162eb5575150c7f50a79e40b1b908"
+  name = "github.com/lovethedrake/drakecore"
+  packages = ["config"]
+  pruneopts = ""
+  revision = "1a0c3538a62542b03f00097f4b917675d3c7ee12"
+  version = "v0.1.0"
+
+[[projects]]
   digest = "1:d0600e4cf07697303f37130791b2ce4577367931416bea8ec4f601bde3f7c5bf"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
@@ -395,14 +395,6 @@
   version = "v0.8.0"
 
 [[projects]]
-  digest = "1:256484dbbcd271f9ecebc6795b2df8cad4c458dd0f5fd82a8c2fa0c29f233411"
-  name = "github.com/pmezard/go-difflib"
-  packages = ["difflib"]
-  pruneopts = ""
-  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
-  version = "v1.0.0"
-
-[[projects]]
   digest = "1:7f569d906bdd20d906b606415b7d794f798f91a62fcfb6a4daa6d50690fb7a3f"
   name = "github.com/satori/go.uuid"
   packages = ["."]
@@ -438,17 +430,6 @@
   pruneopts = ""
   revision = "1ac3a1ac202429a54835fe8408a92880156b489d"
   version = "v1.4.0"
-
-[[projects]]
-  digest = "1:381bcbeb112a51493d9d998bbba207a529c73dbb49b3fd789e48c63fac1f192c"
-  name = "github.com/stretchr/testify"
-  packages = [
-    "assert",
-    "require",
-  ]
-  pruneopts = ""
-  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
-  version = "v1.3.0"
 
 [[projects]]
   digest = "1:fa48ecf2c397bb9cf79caeb843330cbe13e85029a6a57dcbd2f1e218802fa73e"
@@ -863,13 +844,12 @@
     "github.com/docker/docker/client",
     "github.com/docker/docker/pkg/jsonmessage",
     "github.com/docker/docker/pkg/stdcopy",
-    "github.com/ghodss/yaml",
     "github.com/google/go-github/github",
     "github.com/kelseyhightower/envconfig",
+    "github.com/lovethedrake/drakecore/config",
     "github.com/mattn/go-shellwords",
     "github.com/pkg/errors",
     "github.com/satori/go.uuid",
-    "github.com/stretchr/testify/require",
     "github.com/technosophos/moniker",
     "github.com/urfave/cli",
     "gopkg.in/src-d/go-git.v4",

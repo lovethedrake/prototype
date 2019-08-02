@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/lovethedrake/prototype/pkg/config"
+	"github.com/lovethedrake/drakecore/config"
 )
 
 func (e *executor) runStage(

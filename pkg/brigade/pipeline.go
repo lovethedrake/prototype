@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/lovethedrake/prototype/pkg/config"
+	"github.com/lovethedrake/drakecore/config"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"

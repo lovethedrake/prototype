@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/brigadecore/brigade-github-app/pkg/webhook"
-	"github.com/lovethedrake/prototype/pkg/config"
+	"github.com/lovethedrake/drakecore/config"
 	"github.com/mattn/go-shellwords"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"

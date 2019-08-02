@@ -3,7 +3,7 @@ package orchestration
 import (
 	"context"
 
-	"github.com/lovethedrake/prototype/pkg/config"
+	"github.com/lovethedrake/drakecore/config"
 )
 
 type Orchestrator interface {

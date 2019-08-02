@@ -11,7 +11,7 @@ import (
 	dockerContainer "github.com/docker/docker/api/types/container"
 	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/lovethedrake/prototype/pkg/config"
+	"github.com/lovethedrake/drakecore/config"
 	"github.com/lovethedrake/prototype/pkg/orchestration"
 	shellwords "github.com/mattn/go-shellwords"
 	"github.com/pkg/errors"
