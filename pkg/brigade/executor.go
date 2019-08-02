@@ -23,13 +23,18 @@ type Executor interface {
 }
 
 type executor struct {
-	kubeClient kubernetes.Interface
+	workerConfig WorkerConfig
+	kubeClient   kubernetes.Interface
 }
 
 // NewExecutor returns an executor suitable for use with Brigade
-func NewExecutor(kubeClient kubernetes.Interface) Executor {
+func NewExecutor(
+	workerConfig WorkerConfig,
+	kubeClient kubernetes.Interface,
+) Executor {
 	return &executor{
-		kubeClient: kubeClient,
+		workerConfig: workerConfig,
+		kubeClient:   kubeClient,
 	}
 }
 

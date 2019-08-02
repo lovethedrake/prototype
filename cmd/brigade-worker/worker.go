@@ -21,6 +21,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	workerConfig, err := brigade.GetWorkerConfigFromEnvironment()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	project, err := brigade.GetProjectFromEnvironmentAndSecret(kubeClient)
 	if err != nil {
 		log.Fatal(err)
@@ -31,7 +36,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	executor := brigade.NewExecutor(kubeClient)
+	executor := brigade.NewExecutor(workerConfig, kubeClient)
 
 	ctx := signals.Context()
 	if err = executor.ExecuteBuild(

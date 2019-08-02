@@ -48,6 +48,8 @@ func (e *executor) createSrcPVC(
 	}
 	if project.Kubernetes.BuildStorageClass != "" {
 		pvc.Spec.StorageClassName = &project.Kubernetes.BuildStorageClass
+	} else if e.workerConfig.DefaultBuildStorageClass != "" {
+		pvc.Spec.StorageClassName = &e.workerConfig.DefaultBuildStorageClass
 	}
 	_, err = e.kubeClient.CoreV1().PersistentVolumeClaims(
 		project.Kubernetes.Namespace,
