@@ -123,6 +123,9 @@ func (e *executor) ExecuteBuild(
 			go e.runPipeline(ctx, project, event, pipeline, environment, errCh)
 		}
 	}
+	if runningPipelines == 0 {
+		return nil
+	}
 	// Wait for all the pipelines to finish.
 	errs := []error{}
 	for err := range errCh {
